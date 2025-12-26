@@ -2,65 +2,93 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Campo Magnético</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; touch-action: none; }
-        
-        #ui { 
-            position: absolute; 
-            top: 10px; 
-            left: 10px; 
-            background: rgba(20, 20, 20, 0.9); 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 1px solid #444; 
-            width: 260px; /* Reduzi um pouco a largura padrão */
-            z-index: 100; 
+        /* Permitir scroll lateral apenas */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            background: #000; 
+            font-family: sans-serif;
+            overflow-y: hidden; 
+            overflow-x: auto; 
+        }
+
+        /* Container que segura o Menu e o 3D lado a lado */
+        #main-container {
+            display: flex;
+            width: 180vw; /* 80% a mais que a largura da tela para dar espaço ao scroll */
+            height: 100vh;
+        }
+
+        /* Coluna dos Controles */
+        #ui-side { 
+            width: 320px; 
+            min-width: 320px;
+            background: rgba(20, 20, 20, 1); 
+            padding: 20px; 
+            border-right: 2px solid #333;
+            box-sizing: border-box;
             color: white;
+            z-index: 10;
         }
 
-        /* AJUSTE AGRESSIVO PARA MOBILE */
-        @media (max-width: 480px) { 
-            #ui { 
-                width: 220px; /* Painel bem mais estreito */
-                padding: 8px;
-                font-size: 14px;
-            }
-            h3 { font-size: 16px !important; margin-bottom: 5px !important; }
-            label { font-size: 14px !important; }
-            .formula { font-size: 1.1em !important; padding: 5px !important; }
-            #valor-h { font-size: 18px !important; }
-            #label-texto { font-size: 12px !important; }
+        /* Coluna do Simulador 3D */
+        #canvas-container {
+            flex-grow: 1;
+            height: 100vh;
+            position: relative;
         }
 
-        .control { margin-bottom: 8px; }
-        label { display: block; color: #ccc; margin-bottom: 3px; }
-        input[type=range] { width: 100%; height: 25px; cursor: pointer; }
-        h3 { margin: 0 0 10px 0; color: #00d4ff; border-bottom: 1px solid #333; }
+        .control { margin-bottom: 20px; }
+        label { display: block; font-size: 18px; color: #ccc; margin-bottom: 10px; }
+        input[type=range] { width: 100%; height: 30px; cursor: pointer; }
+        h3 { margin: 0 0 15px 0; color: #00d4ff; border-bottom: 1px solid #333; }
+        
         .formula { 
-            font-family: serif; color: #ffcc00; text-align: center; 
-            background: rgba(255,255,255,0.05); border-radius: 4px; margin: 5px 0;
+            font-family: serif; font-size: 1.6em; color: #ffcc00; 
+            text-align: center; background: rgba(255,255,255,0.05); 
+            padding: 10px; border-radius: 8px; margin: 15px 0;
         }
-        #valor-h { text-align: center; font-weight: bold; color: #00ffaa; }
-        #label-texto { color: #00ffff; margin-top: 5px; border-top: 1px solid #333; padding-top: 5px; text-align: center; line-height: 1.2; }
+        
+        #valor-h { text-align: center; font-weight: bold; color: #00ffaa; font-size: 24px; }
+        
+        #label-texto { 
+            color: #00ffff; margin-top: 20px; border-top: 1px solid #333; 
+            padding-top: 15px; text-align: center; line-height: 1.4; font-size: 16px;
+        }
+
+        /* Indicador visual de que dá para arrastar */
+        #scroll-hint {
+            position: absolute; bottom: 20px; right: 20px;
+            color: white; background: rgba(0,0,0,0.5);
+            padding: 10px; border-radius: 20px; font-size: 12px;
+            pointer-events: none; border: 1px solid #444;
+        }
     </style>
 </head>
 <body>
 
-<div id="ui">
-    <h3>Campo Magnético H</h3>
-    <div class="control">
-        <label id="label-i">Corrente (i): 5 A</label>
-        <input type="range" id="input-i" min="-20" max="20" step="0.5" value="5">
+<div id="main-container">
+    <div id="ui-side">
+        <h3>Campo Magnético H</h3>
+        <div class="control">
+            <label id="label-i">Corrente (i): 5 A</label>
+            <input type="range" id="input-i" min="-20" max="20" step="0.5" value="5">
+        </div>
+        <div class="control">
+            <label id="label-r">Distância (r): 1.0 m</label>
+            <input type="range" id="input-r" min="0" max="4" step="0.01" value="1">
+        </div>
+        <div id="formula-display" class="formula">H = i / (2πr)</div>
+        <div id="valor-h">H = 0.80 A/m</div>
+        <div id="label-texto">Arraste a tela para o lado →<br>para ver o campo em 3D</div>
     </div>
-    <div class="control">
-        <label id="label-r">Distância (r): 1.0 m</label>
-        <input type="range" id="input-r" min="0" max="4" step="0.01" value="1">
+
+    <div id="canvas-container">
+        <div id="scroll-hint">← Arraste para os controles</div>
     </div>
-    <div id="formula-display" class="formula">H = i / (2πr)</div>
-    <div id="valor-h">H = 0.80 A/m</div>
-    <div id="label-texto">Setas tangentes indicam o sentido do campo H</div>
 </div>
 
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
@@ -72,26 +100,20 @@
     const R_FIO = 0.12; 
 
     function init() {
+        const container = document.getElementById('canvas-container');
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a0a);
         
-        const aspect = window.innerWidth / window.innerHeight;
+        const aspect = container.clientWidth / container.clientHeight;
         const d = 5;
         camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 1000);
-        
-        // AJUSTE DE CÂMERA: Se a tela for estreita (celular), movemos o alvo da câmera para a direita
-        if (aspect < 1) {
-            camera.position.set(4, 5, 8); // Ângulo mais inclinado
-            camera.lookAt(-1.5, 0, 0);   // "Empurra" o fio para a esquerda para não ficar sob o menu
-        } else {
-            camera.position.set(5, 5, 5);
-            camera.lookAt(0, 0, 0);
-        }
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limita para não pesar em celulares 4K
-        document.body.appendChild(renderer.domElement);
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
 
         const light1 = new THREE.DirectionalLight(0xffffff, 1.2);
         light1.position.set(5, 10, 7);
@@ -181,12 +203,12 @@
     }
 
     window.addEventListener('resize', () => {
-        const aspect = window.innerWidth / window.innerHeight;
+        const container = document.getElementById('canvas-container');
+        const aspect = container.clientWidth / container.clientHeight;
         const d = 5;
         camera.left = -d * aspect; camera.right = d * aspect;
-        if (aspect < 1) camera.lookAt(-1.5, 0, 0); // Reajusta o foco no resize
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
     init();
