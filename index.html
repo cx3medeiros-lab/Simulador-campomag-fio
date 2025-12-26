@@ -2,92 +2,61 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Campo Magnético</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador de Campo Magnético H</title>
     <style>
-        /* Permitir scroll lateral apenas */
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            background: #000; 
-            font-family: sans-serif;
-            overflow-y: hidden; 
-            overflow-x: auto; 
+        body { margin: 0; overflow: hidden; background: #0a0a0a; font-family: 'Segoe UI', sans-serif; touch-action: none; }
+        
+        /* Botão para abrir/fechar controles */
+        #menu-toggle {
+            position: absolute; top: 15px; left: 15px; width: 50px; height: 50px;
+            background: #00d4ff; border: none; border-radius: 50%;
+            color: #000; font-size: 24px; font-weight: bold; cursor: pointer;
+            z-index: 1000; box-shadow: 0 0 15px rgba(0,212,255,0.5);
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* Container que segura o Menu e o 3D lado a lado */
-        #main-container {
-            display: flex;
-            width: 180vw; /* 80% a mais que a largura da tela para dar espaço ao scroll */
-            height: 100vh;
+        /* Painel de Controles (Gaveta) */
+        #ui-panel { 
+            position: absolute; top: 0; left: -300px; width: 280px; height: 100%;
+            background: rgba(15, 15, 15, 0.95); padding: 80px 20px 20px 20px;
+            transition: left 0.3s ease; border-right: 1px solid #333;
+            z-index: 900; color: white; box-sizing: border-box;
+            overflow-y: auto;
         }
+        #ui-panel.open { left: 0; }
 
-        /* Coluna dos Controles */
-        #ui-side { 
-            width: 320px; 
-            min-width: 320px;
-            background: rgba(20, 20, 20, 1); 
-            padding: 20px; 
-            border-right: 2px solid #333;
-            box-sizing: border-box;
-            color: white;
-            z-index: 10;
-        }
-
-        /* Coluna do Simulador 3D */
-        #canvas-container {
-            flex-grow: 1;
-            height: 100vh;
-            position: relative;
-        }
-
-        .control { margin-bottom: 20px; }
-        label { display: block; font-size: 18px; color: #ccc; margin-bottom: 10px; }
-        input[type=range] { width: 100%; height: 30px; cursor: pointer; }
-        h3 { margin: 0 0 15px 0; color: #00d4ff; border-bottom: 1px solid #333; }
+        .control { margin-bottom: 25px; }
+        label { display: block; font-size: 18px; color: #00d4ff; margin-bottom: 10px; }
+        input[type=range] { width: 100%; height: 35px; cursor: pointer; }
         
         .formula { 
-            font-family: serif; font-size: 1.6em; color: #ffcc00; 
+            font-family: 'Times New Roman', serif; font-size: 1.6em; color: #ffcc00; 
             text-align: center; background: rgba(255,255,255,0.05); 
-            padding: 10px; border-radius: 8px; margin: 15px 0;
+            padding: 15px; border-radius: 8px; margin: 15px 0;
         }
         
         #valor-h { text-align: center; font-weight: bold; color: #00ffaa; font-size: 24px; }
-        
-        #label-texto { 
-            color: #00ffff; margin-top: 20px; border-top: 1px solid #333; 
-            padding-top: 15px; text-align: center; line-height: 1.4; font-size: 16px;
-        }
-
-        /* Indicador visual de que dá para arrastar */
-        #scroll-hint {
-            position: absolute; bottom: 20px; right: 20px;
-            color: white; background: rgba(0,0,0,0.5);
-            padding: 10px; border-radius: 20px; font-size: 12px;
-            pointer-events: none; border: 1px solid #444;
-        }
+        #info-texto { font-size: 14px; color: #ccc; text-align: center; margin-top: 20px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-<div id="main-container">
-    <div id="ui-side">
-        <h3>Campo Magnético H</h3>
-        <div class="control">
-            <label id="label-i">Corrente (i): 5 A</label>
-            <input type="range" id="input-i" min="-20" max="20" step="0.5" value="5">
-        </div>
-        <div class="control">
-            <label id="label-r">Distância (r): 1.0 m</label>
-            <input type="range" id="input-r" min="0" max="4" step="0.01" value="1">
-        </div>
-        <div id="formula-display" class="formula">H = i / (2πr)</div>
-        <div id="valor-h">H = 0.80 A/m</div>
-        <div id="label-texto">Arraste a tela para o lado →<br>para ver o campo em 3D</div>
-    </div>
+<button id="menu-toggle">i</button>
 
-    <div id="canvas-container">
-        <div id="scroll-hint">← Arraste para os controles</div>
+<div id="ui-panel">
+    <div class="control">
+        <label id="label-i">Corrente (i): 5 A</label>
+        <input type="range" id="input-i" min="-20" max="20" step="0.5" value="5">
+    </div>
+    <div class="control">
+        <label id="label-r">Distância (r): 1.0 m</label>
+        <input type="range" id="input-r" min="0" max="4" step="0.01" value="1">
+    </div>
+    <div id="formula-display" class="formula">H = i / (2πr)</div>
+    <div id="valor-h">H = 0.80 A/m</div>
+    <div id="info-texto">
+        Ajuste os valores e feche este painel tocando no botão "i" para ver o campo em tela cheia.
     </div>
 </div>
 
@@ -95,43 +64,52 @@
 
 <script>
     let scene, camera, renderer, wire, currentArrow, fieldCylinder;
-    const rings = [];
-    const tangentArrows = [];
-    const R_FIO = 0.12; 
+    const rings = [], tangentArrows = [];
+    const R_FIO = 0.12;
+
+    // Lógica da Gaveta
+    const btn = document.getElementById('menu-toggle');
+    const panel = document.getElementById('ui-panel');
+    btn.onclick = () => {
+        panel.classList.toggle('open');
+        btn.innerText = panel.classList.contains('open') ? '✕' : 'i';
+    };
 
     function init() {
-        const container = document.getElementById('canvas-container');
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
+        scene.background = new THREE.Color(0x050505);
         
-        const aspect = container.clientWidth / container.clientHeight;
+        const aspect = window.innerWidth / window.innerHeight;
         const d = 5;
         camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 1000);
         camera.position.set(5, 5, 5);
         camera.lookAt(0, 0, 0);
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
+        document.body.appendChild(renderer.domElement);
 
-        const light1 = new THREE.DirectionalLight(0xffffff, 1.2);
-        light1.position.set(5, 10, 7);
-        scene.add(light1);
         scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+        sun.position.set(5, 10, 7);
+        scene.add(sun);
 
+        // Fio
         wire = new THREE.Mesh(
-            new THREE.CylinderGeometry(R_FIO, R_FIO, 15, 16),
+            new THREE.CylinderGeometry(R_FIO, R_FIO, 15, 24),
             new THREE.MeshStandardMaterial({ color: 0x9c5221, metalness: 0.8, roughness: 0.3 })
         );
         scene.add(wire);
 
+        // Seta i
         currentArrow = new THREE.Mesh(
             new THREE.ConeGeometry(0.18, 0.5, 16),
             new THREE.MeshBasicMaterial({ color: 0xffff00 })
         );
         scene.add(currentArrow);
 
+        // Cilindro B
         fieldCylinder = new THREE.Mesh(
             new THREE.CylinderGeometry(1, 1, 10, 32, 1, true),
             new THREE.MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
@@ -140,24 +118,17 @@
 
         for (let i = 0; i < 6; i++) {
             const yPos = (i - 2.5) * 2;
-            const ring = new THREE.Mesh(
-                new THREE.TorusGeometry(1, 0.02, 8, 64),
-                new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true })
-            );
-            ring.rotation.x = Math.PI / 2;
-            ring.position.y = yPos;
-            scene.add(ring);
-            rings.push(ring);
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.02, 8, 64), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }));
+            ring.rotation.x = Math.PI / 2; ring.position.y = yPos;
+            scene.add(ring); rings.push(ring);
 
             const arrowGrp = new THREE.Group();
             const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }));
             stem.rotation.z = Math.PI / 2;
             const head = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.2), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }));
             head.position.x = 0.25; head.rotation.z = -Math.PI / 2;
-            arrowGrp.add(stem, head);
-            arrowGrp.position.y = yPos;
-            scene.add(arrowGrp);
-            tangentArrows.push(arrowGrp);
+            arrowGrp.add(stem, head); arrowGrp.position.y = yPos;
+            scene.add(arrowGrp); tangentArrows.push(arrowGrp);
         }
 
         setupControls();
@@ -165,11 +136,11 @@
     }
 
     function setupControls() {
-        const inputI = document.getElementById('input-i');
-        const inputR = document.getElementById('input-r');
+        const inI = document.getElementById('input-i');
+        const inR = document.getElementById('input-r');
         const update = () => {
-            const i = parseFloat(inputI.value);
-            const r = parseFloat(inputR.value);
+            const i = parseFloat(inI.value);
+            const r = parseFloat(inR.value);
             let h = (r >= R_FIO) ? i / (2 * Math.PI * r) : (i * r) / (2 * Math.PI * (R_FIO**2));
             if (r === 0) h = 0;
 
@@ -192,8 +163,7 @@
                 arrow.visible = (i !== 0 && r > 0.05);
             });
         };
-        inputI.oninput = update;
-        inputR.oninput = update;
+        inI.oninput = update; inR.oninput = update;
         update();
     }
 
@@ -203,12 +173,11 @@
     }
 
     window.addEventListener('resize', () => {
-        const container = document.getElementById('canvas-container');
-        const aspect = container.clientWidth / container.clientHeight;
+        camera.aspect = window.innerWidth / window.innerHeight;
         const d = 5;
-        camera.left = -d * aspect; camera.right = d * aspect;
+        camera.left = -d * camera.aspect; camera.right = d * camera.aspect;
         camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
     init();
